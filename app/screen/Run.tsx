@@ -37,7 +37,8 @@ const Run = () => {
           isTracking && location ? [location.longitude, location.latitude] : 
           undefined}
            animationDuration={1000}
-          // followUserLocation={true}
+          //  allowUserLocation={isTracking}
+          //  followUserMode="normal"
       />
       {path.length > 1 && (
           <ShapeSource id="routeSource" shape={route}>

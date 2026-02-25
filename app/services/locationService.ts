@@ -1,5 +1,6 @@
-import * as Location from 'expo-location'
-import * as TaskManager from 'expo-task-manager'
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import { Alert, Linking, Platform } from 'react-native';
 
 export const LOCATION_TASK = "background-location-task";
 
@@ -52,13 +53,87 @@ export const startTracking = async (
 
 
 export const stopTracking = async () => {
-  foregroundSub?.remove();
-  foregroundSub = null;
+    foregroundSub?.remove();
+    foregroundSub = null;
 
-  const running =
-    await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
+    const running =
+        await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
 
-  if (running) {
-    await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-  }
+    if (running) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+    }
 };
+
+
+
+//ensureLocationReady -- 1
+
+
+export const ensureLocationReady = async (): Promise<boolean> => {
+    
+    // 1. Checking/Requesting Foregroud permission
+
+    const fg = await Location.getForegroundPermissionsAsync();
+
+    let fgStatus = fg.status;
+    let fgCanAsk = fg.canAskAgain;
+
+    if (fgStatus !== "granted") {
+        const req = await Location.requestForegroundPermissionsAsync();
+        fgStatus = req.status;
+        fgCanAsk = req.canAskAgain;
+    }
+
+    if (fgStatus !== "granted") {
+        if (!fgCanAsk) {
+            Alert.alert(
+                "Permission Required",
+                "Enable location permission from settings",
+                [{ text: "Open Settings", onPress: () => Linking.openSettings() }]
+            );
+        }
+        return false;
+    }
+
+    // Background permission
+
+    const bg = await Location.getBackgroundPermissionsAsync();
+    let bgStatus = bg.status;
+
+    if (bgStatus !== "granted") {
+    const reqBg = await Location.requestBackgroundPermissionsAsync();
+    bgStatus = reqBg.status;
+    }
+
+    if (bgStatus !== "granted") {
+    return false;
+    }
+
+    // Check GPS
+    const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+
+  if (!servicesEnabled) {
+    Alert.alert(
+      "Enable GPS",
+      "Turn on location services",
+      [
+        {
+          text: "Open Location Settings",
+          onPress: () => {
+            if (Platform.OS === "android") {
+              Linking.sendIntent(
+                "android.settings.LOCATION_SOURCE_SETTINGS"
+              );
+            }
+          },
+        },
+      ]
+    );
+    return false;
+  }
+
+  return true;
+
+
+}

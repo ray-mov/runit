@@ -23,7 +23,7 @@ export default function Index() {
     <PastRun />
 
     <TouchableOpacity className="bg-black py-4 px-8 absolute bottom-20 rounded-md" onPress={handleStartRun}>
-        <Text className="text-white text-4xl">START RUN</Text>
+        <Text className="text-white text-4xl">START RUNNING</Text>
     </TouchableOpacity>
     </SafeAreaView>
   )
